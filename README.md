@@ -12,7 +12,7 @@ miavortaro = MiaVortaro()
 miavortaro.komencu()
 ## Opcio: Voki "listigiVortojn" por listigi vortojn pere de iom sametempe
 ##  Rimarku, ke la defaŭlta valoro de la funkcio estas 10, kaj oni povas enmeti
-##     iu alia valoro volante
+##     iun alian valoron volante
 vortoj = miavortaro.listigiVortojn()
 print(vortoj)
 ## Opcio: Voki "serĉiVorton" por serĉi tra la tuta servilo vortojn 

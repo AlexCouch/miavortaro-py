@@ -6,16 +6,34 @@ import json
 import logging
 
 class PetajSpecoj(enum.Enum):
+    """ 
+    PetajSpecoj estas la enumo por la specoj da petoj kiujn oni povas uzi
+
+    Tiuj ĉi estas uzataj kiam novajn petojn kreas kaj sendas la programo, al la servilo.
+    La nomoj de la specoj estas memklarigeblaj
+    """
     GET = enum.auto()
     POST = enum.auto()
     DELETE = enum.auto()
 
 @dataclass
 class Peto:
-    ##
-    ##  Peto(PetajSpecoj.GET, 'serĉiVorton', "/", time.time(), {"vortoj", "s"}) fariĝas jene:
-    ##      GET /?vortoj=s HTTP/1.1
-    ##      
+    """
+    Klazo por reprezenti unuopan peton al la servilo, kiu enhavas la informaĵon por la specifa peto.
+    
+    Ĉi tiu estas kreata kiam aga funkcio (t.e listigiVortojn, serĉiVorton, ktp), kaj la peton devas envicigi la motoro por sendi al la servilo.
+    La peto reprezentas la aktualan peton kiun sendas la motoro, ekzemple:
+        
+        Peto(PetajSpecoj.GET, 'serĉiVorton', "/", time.time(), {"vortoj", "s"}) fariĝas jene:
+            GET /?vortoj=s HTTP/1.1
+
+    speco: La speco de la peto estas uzata por krei la ĝustan mesaĝon per requests.py
+    nomo: La nomo estas uzata por trovi la ĝustajn respondojn inter fadenoj (vidu la dokojn de la motoro MiaVortaro klazo)
+    vojo: La vojo laŭ la servilo, al kiu la peto estas sendata (/, /ensaluti, /registri, ktp)
+    tempo: Tiam, kiam la peto estas kreata (ne uzata nune sed estontece la libraro ja uzos ĝin pli ofte)
+    parametroj: La parametroj kiujn enhavas la peto kiam ĝi estas sendita al la servilo, ekzemple, "/?listo=10"
+    korpo: La korpo aŭ la tutaĵo de la peto, per kiu la servilo faras aferojn laŭ la peto, ekzemple, ŝanĝi vortojn, ensaluti per konto-detaloj, ktp
+    """
     speco       : int
     nomo        : str
     vojo        : str

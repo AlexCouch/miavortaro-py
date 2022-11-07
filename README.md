@@ -17,7 +17,7 @@ vortoj = miavortaro.listigiVortojn()
 print(vortoj)
 ## Opcio: Voki "serĉiVorton" por serĉi tra la tuta servilo vortojn 
 #   kiuj kongruas kun la enigaĵo 
-#   (ekzemple, ĉi tie "en" donu al vi ĉiuj vortoj kiuj enhavas "en")
+#   (ekzemple, ĉi tie "en" donu al vi ĉiujn vortojn kiuj enhavas "en")
 rezulto = miavortaro.serĉiVorton("en")
 print(rezulto)
 ## Haltu/Ĉesu la motoron

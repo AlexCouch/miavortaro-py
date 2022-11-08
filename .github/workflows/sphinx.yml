@@ -6,6 +6,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - name: Update python and pip
+      run: apt-get install sphinx && pip3 install --upgrade pip && pip3 install sphinx
     - uses: actions/checkout@v3
     - name: Build HTML
       uses: ammaraskar/sphinx-action@0.4

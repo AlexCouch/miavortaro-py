@@ -9,5 +9,5 @@ La libraro inkluzas multajn partojn de la arkitekturo por pripensi, jene:
 * :doc:`motoro`
 * :doc:`fadenoj`
 * :doc:`petoj`
-* :doc:`uzo`
-* :doc:`rajtigo`
+.. * :doc:`uzo`
+.. * :doc:`rajtigo`

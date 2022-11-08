@@ -13,6 +13,7 @@ jobs:
       uses: ammaraskar/sphinx-action@0.4
       with:
         build-command: sphinx-build -w source/ docs/
+        pre-build-command: sudo mkdir /tmp/sphinx-log
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:

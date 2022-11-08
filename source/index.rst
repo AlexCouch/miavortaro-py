@@ -8,6 +8,9 @@ Welcome to miavortaro.py's documentation!
 
 .. toctree::
    usage
+   motoro
+   fadenoj
+   petoj
    :maxdepth: 2
    :caption: Contents:
 

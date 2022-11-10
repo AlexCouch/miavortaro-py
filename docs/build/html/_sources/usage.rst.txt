@@ -1,0 +1,38 @@
+.. _motoro:
+Motoro
+------
+Informaĵoj pri la motoro
+
+.. _fadenoj:
+Fadenoj
+-------
+Informaĵoj pri la fadenoj
+
+.. _petoj:
+Petoj
+------
+Informaĵoj pri la petoj
+
+.. _uzo:
+Uzo
+------
+Informaĵoj pri la uzo
+
+.. _rajtigo:
+Rajtigo
+-------
+Informaĵoj pri la rajtigo
+
+.. _ĉefpaĝo:
+
+Kiel Uzi miavortaro-py
+======================
+miavortaro-py permesas ke, oni povu krei petojn al la miavortaro servilo, por akiri vortojn, tradukojn, ekzemplojn, gramatikajn rimarkojn/notojn, ktp.
+
+La libraro inkluzas multajn partojn de la arkitekturo por pripensi, jene:
+
+* :ref:`motoro`
+* :ref:`fadenoj`
+* :ref:`petoj`
+* :ref:`uzo`
+* :ref:`rajtigo`

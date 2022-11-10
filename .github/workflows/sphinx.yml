@@ -6,13 +6,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Update python and pip
-      run: pip install --upgrade pip && pip install sphinx
     - uses: actions/checkout@v3
     - name: Build HTML
-      uses: ammaraskar/sphinx-action@0.4
-      with:
-        pre-build-command: sudo mkdir /tmp/sphinx-log
+      uses: ammaraskar/sphinx-action@master
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:

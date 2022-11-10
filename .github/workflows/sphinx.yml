@@ -12,7 +12,6 @@ jobs:
     - name: Build HTML
       uses: ammaraskar/sphinx-action@0.4
       with:
-        build-command: sphinx-build -b html . _build
         pre-build-command: sudo mkdir /tmp/sphinx-log
     - name: Upload artifacts
       uses: actions/upload-artifact@v3

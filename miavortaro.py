@@ -114,10 +114,36 @@ class Fadeno:
             return
 
         while self.__kurado_flago is True:
-            if not self.__revoko():
-                self.__notilo.error("Revoko malsukcesis, legu la antaŭajn konsilajn notojn")
-            time.sleep(0.5)
-    
+            try:
+                if not self.__revoko():
+                    self.__notilo.error("Revoko malsukcesis, legu la antaŭajn konsilajn notojn")
+                time.sleep(0.5)
+            except Exception as e:
+                continue
+            except Error as e:
+                continue
+
+class EraroPrizorganto:
+    def __init__(self, notilo):
+        self.__notilo = notilo
+
+    def peto_eraro(self, peto, respondo, escepto):
+        eraro_mesaĝo = str(escepto)
+
+        eraro_ŝnuro = ""
+        eraro_ŝnuro += "Malsukcesis sendi GET peton:"
+        eraro_ŝnuro += f"    - Kiam la peton sendas: {peto.method} {peto.url}?{peto.params}"
+        eraro_ŝnuro += f"    - Auth: {peto.auth}"
+        eraro_ŝnuro += f"    - Peto-korpo: {peto.data}"
+        eraro_ŝnuro += "Kaj la respondon havigis:"
+        eraro_ŝnuro += f"    - Status Code: {respondo.status_code}"
+        eraro_ŝnuro += f"    - Vojo: {respondo.url}"
+        eraro_ŝnuro += f"    - Kialo: {respondo.reason}"
+        eraro_ŝnuro += f"    - Korpo: {respondo.text()}"
+
+        self.__notilo.error(eraro_ŝnuro)
+
+
 import requests
 
 class MiaVortaro:
@@ -137,6 +163,14 @@ class MiaVortaro:
         self.__notilo = None
         self.__tempolimo = 5 #sekundoj
 
+        self.__eraro_prizorganto = None
+
+    def __enter__(self):
+        return MiaVortaro()
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        return
+
     def prilaboriPetojn(self):
         peto = self.__jenaj_petoj.preniPeton()
         if peto is None:
@@ -149,18 +183,16 @@ class MiaVortaro:
             try:
                 respondo = requests.get(self.__miavortaro_retregno + peto.vojo, params=peto.parametroj, headers={'Content-Type': 'application/json'})
                 now = time.time()
+            except ConnectionError as e:
+                self.__notilo.exception(f"Malsukcesis konekti", exec_info=e)
+                return False
+            except requests.exceptions.ConnectionError as e:
+                self.__notilo.exception(f"Malsukcesis konekti: {e}")
+                return False
             except requests.exceptions.RequestException as e:
                 ##TODO: Ni devas movi tion ĉi en novan funkcion en alia klazo
                 ##TODO: Kaj ankaŭ ni devas aldoni erarojn al eraro-listo iam
-                self.__notilo.exception(f"Malsukcesis sendi GET peton:")
-                self.__notilo.exception(f"    - Kiam la peton sendas: {e.request.method} {e.request.url}?{e.params}")
-                self.__notilo.exception(f"    - Auth: {e.auth}")
-                self.__notilo.exception(f"    - Peto-korpo: {e.data}")
-                self.__notilo.exception(f"Kaj la respondon havigis:")
-                self.__notilo.exception(f"    - Status Code: {e.response.status_code}")
-                self.__notilo.exception(f"    - Vojo: {e.response.url}")
-                self.__notilo.exception(f"    - Kialo: {e.response.reason}")
-                self.__notilo.exception(f"    - Korpo: {e.response.json()}")
+                self.__eraro_prizorganto.peto_eraro(e.peto, e.respondo, e)
                 return False
             except Exception as e:
                 self.__notilo.exception(f"Ekcepto okazis: {e}")
@@ -178,6 +210,7 @@ class MiaVortaro:
         self.__tempolimo = tempolimo
 
         self.__notilo = logging.getLogger("miavortaro")
+        self.__eraro_prizorganto = EraroPrizorganto(self.__notilo)
 
         ##Kreu la konsolan traktilon kaj aldonu al ĝi la formatilo, kaj tiam aldonu ĝin al la notilo
         konsolo = logging.StreamHandler()
@@ -232,8 +265,8 @@ class MiaVortaro:
         ## Paŝo 2: Traduki la respondo-korpon al Vortaro objekto (Dictionary object)
         return json.loads(respondo.korpo)
 
-    def listigiVortojn(self, kvanto=10):
-        respondo = self.__senduGET(nomo = "listigiVortojn", vojo = "/", parametroj = {"listo": str(kvanto)}, korpo = None)
+    def listigiVortojn(self, komenco=0, fino=10):
+        respondo = self.__senduGET(nomo = "listigiVortojn", vojo = "/", parametroj = {"tranĉi": f"{komenco},{fino}"}, korpo = None)
         if respondo is None:
             return None
         return json.loads(respondo.korpo)

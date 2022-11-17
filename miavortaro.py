@@ -153,20 +153,23 @@ class PetoSendanto:
         
     def kreiEraron(self, peto, ekcepto):
         self.__notilo.exception(f"Malsukcesis sendi {PetajSpecoj(peto.speco).name} peton:")
-        self.__notilo.exception(f"    - Kiam la peton sendas: {e.request.method} {e.request.url}?{e.params}")
-        self.__notilo.exception(f"    - Auth: {e.auth}")
-        self.__notilo.exception(f"    - Peto-korpo: {e.data}")
+        self.__notilo.exception(f"    - Kiam la peton sendas: {ekcepto.request.method} {ekcepto.request.url}?{ekcepto.params}")
+        self.__notilo.exception(f"    - Auth: {ekcepto.auth}")
+        self.__notilo.exception(f"    - Peto-korpo: {ekcepto.data}")
         self.__notilo.exception(f"Kaj la respondon havigis:")
-        self.__notilo.exception(f"    - Status Code: {e.response.status_code}")
-        self.__notilo.exception(f"    - Vojo: {e.response.url}")
-        self.__notilo.exception(f"    - Kialo: {e.response.reason}")
-        self.__notilo.exception(f"    - Korpo: {e.response.json()}")
+        self.__notilo.exception(f"    - Status Code: {ekcepto.response.status_code}")
+        self.__notilo.exception(f"    - Vojo: {ekcepto.response.url}")
+        self.__notilo.exception(f"    - Kialo: {ekcepto.response.reason}")
+        self.__notilo.exception(f"    - Korpo: {ekcepto.response.json()}")
 
     def __sendiGET(self, peto):
         try:
-            respondo = requests.get(self.__retregno + peto.vojo, params=peto.parametroj, headers={'Content-Type': 'application/json'})
+            respondo = requests.get(self.__retregno + peto.vojo, params=peto.parametroj, headers={'Content-Type': 'application/json'}, verify="keystore.pem")
             now = time.time()
             return self.__havigiRespondon(peto, respondo)
+        except requests.exceptions.SSLError as e:
+            self.__notilo.exception(f"SSL eraro okazis: {e}")
+            return None
         except requests.exceptions.RequestException as e:
             self.kreiEraron(peto, e)
             return None
@@ -273,7 +276,7 @@ class Rajtiganto:
 import requests
 
 class MiaVortaro:
-    def __init__(self, uzantnomo, pasvorto):
+    def __init__(self, uzantnomo=None, pasvorto=None):
         self.__lasta_respondo = None
         self.__lasta_peto = None
         self.__lasta_stato = None

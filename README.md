@@ -1,7 +1,11 @@
 # miavortaro.py 0.1-alpha
 Tiu ĉi libraro Python-a estas oficiala libraro por integri komunikadon inter aliaj apoj kaj MiaVortaro per Python
 
+## Gravaj Rimarkoj
+
+
 ## Kiel Uzi
+Jen kiel uzi ĝin sen la rajtigo
 ```python
 ## Unue: Importi miavortaro.MiaVortaro
 from miavortaro import MiaVortaro
@@ -24,7 +28,26 @@ print(rezulto)
 miavortaro.ĉesu()
 ```
 
+Jen kiel uzi ĝin kun la rajtigo (rimarku: nuntempe, nur mi povas uzi ĝin ĝis mi integras manieron por havi adminajn kontojn estontece)
+
+```python
+from miavortaro import MiaVortaro
+
+miavortaro = MiaVortaro("uzantnomo", "pasvorto")
+miavortaro.komencu()
+respondo = miavortaro.aldoniVorton("enmeti", "meti en")
+if respondo is None:
+    print("Ne povis aldoni aŭ ŝanĝi vorton")
+    exit(1)
+if respondo.kodo != 200:
+    print(f"Malsukcesis aldoni/ŝanĝi vorton: {respondo.kodo}")
+miavortaro.ĉesu()
+```
+
+Baldaŭ mi aldonos adminajn kontojn
+
 ## Rimarkoj
 1. Tuje, miavortaro estas ankoraŭ programata, kaj neniuj povas nune uzi miavortaro-n ĝis ĝi estas preta por eldoni pere de AWS. Mi (Alex) devas kalkuli la kostojn de la servilo kaj la administradon de la apo. Ĝis tiam, mi daŭras plibonigi la librarojn kaj la tutan apon ankaŭ.
-2. Oni devas kurigi la tutan apon el https://github.com/AlexCouch/miavortaro, kaj ankaŭ mi aldonos ilon por plenigi la servilon kun vortoj baldaŭ por ke oni ne devas konstante plenigi la servilon memstare.
+2. Oni devas kurigi la tutan apon el https://github.com/AlexCouch/miavortaro, kaj ankaŭ mi aldonos ilon por plenigi la servilon kun vortoj baldaŭ por ke oni ne devas konstante plenigi la servilon mane.
 3. Neniu povas aldoni vortojn ankoraŭ. Mi havas la manieron por aldoni vortojn, sed mi laboras plibonigi la funkcion de la aldonado de vortoj, do baldaŭ oni povas submeti vortojn estontece, sed mi ne certas tiel kiel mi deziras ke, oni submetu vortojn sekure.
+4. La nuna versio de la libraro postulas SSL-atestilon, do nune la libraro kunvenas kun la SSL-atestilo ĉiuokaze. Ĝis la SSL-atestilon povas validigi mi, ĝi devas esti uzata ĉi tie nuntempe. Kiam la retregnon aĉetas mi, mi ĝisdatigos tiun ĉi por ke ĝi ne plu uzas la SSL-atestilon.

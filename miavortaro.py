@@ -116,9 +116,34 @@ class Fadeno:
             return
 
         while self.__kurado_flago is True:
-            if not self.__revoko():
-                self.__notilo.error("Revoko malsukcesis, legu la antaŭajn konsilajn notojn")
-            time.sleep(0.5)
+            try:
+                if not self.__revoko():
+                    self.__notilo.error("Revoko malsukcesis, legu la antaŭajn konsilajn notojn")
+                time.sleep(0.5)
+            except Exception as e:
+                continue
+            except Error as e:
+                continue
+
+class EraroPrizorganto:
+    def __init__(self, notilo):
+        self.__notilo = notilo
+
+    def peto_eraro(self, peto, respondo, escepto):
+        eraro_mesaĝo = str(escepto)
+
+        eraro_ŝnuro = ""
+        eraro_ŝnuro += "Malsukcesis sendi GET peton:"
+        eraro_ŝnuro += f"    - Kiam la peton sendas: {peto.method} {peto.url}?{peto.params}"
+        eraro_ŝnuro += f"    - Auth: {peto.auth}"
+        eraro_ŝnuro += f"    - Peto-korpo: {peto.data}"
+        eraro_ŝnuro += "Kaj la respondon havigis:"
+        eraro_ŝnuro += f"    - Status Code: {respondo.status_code}"
+        eraro_ŝnuro += f"    - Vojo: {respondo.url}"
+        eraro_ŝnuro += f"    - Kialo: {respondo.reason}"
+        eraro_ŝnuro += f"    - Korpo: {respondo.text()}"
+
+        self.__notilo.error(eraro_ŝnuro)
 
 class PetoSendanto:
     def __init__(self, retregno, notilo, eraro_prizorganto):
@@ -263,13 +288,20 @@ class MiaVortaro:
 
         self.__notilo = None
         self.__tempolimo = 5 #sekundoj
-
+        
         self.__peto_sendanto = None
         self.__rajtiganto = None
 
         self.__uzantnomo = uzantnomo
         self.__pasvorto = pasvorto
-        
+
+        self.__eraro_prizorganto = None
+
+    def __enter__(self):
+        return MiaVortaro()
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        return
 
     def prilaboriPetojn(self):
         peto = self.__jenaj_petoj.preniPeton()
@@ -293,6 +325,7 @@ class MiaVortaro:
         self.__tempolimo = tempolimo
 
         self.__notilo = logging.getLogger("miavortaro")
+        self.__eraro_prizorganto = EraroPrizorganto(self.__notilo)
 
         ##Kreu la konsolan traktilon kaj aldonu al ĝi la formatilo, kaj tiam aldonu ĝin al la notilo
         konsolo = logging.StreamHandler()
@@ -358,8 +391,8 @@ class MiaVortaro:
         ## Paŝo 2: Traduki la respondo-korpon al Vortaro objekto (Dictionary object)
         return json.loads(respondo.korpo)
 
-    def listigiVortojn(self, kvanto=10):
-        respondo = self.__senduGET(nomo = "listigiVortojn", vojo = "/", parametroj = {"listo": str(kvanto)}, korpo = None)
+    def listigiVortojn(self, komenco=0, fino=10):
+        respondo = self.__senduGET(nomo = "listigiVortojn", vojo = "/", parametroj = {"tranĉi": f"{komenco},{fino}"}, korpo = None)
         if respondo is None:
             return None
         return json.loads(respondo.korpo)

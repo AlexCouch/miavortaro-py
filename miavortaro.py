@@ -24,7 +24,7 @@ class Peto:
     Ĉi tiu estas kreata kiam aga funkcio (t.e listigiVortojn, serĉiVorton, ktp), kaj la peton devas envicigi la motoro por sendi al la servilo.
     La peto reprezentas la aktualan peton kiun sendas la motoro, ekzemple:
         
-        Peto(PetajSpecoj.GET, 'serĉiVorton', "/", time.time(), {"vortoj", "s"}) fariĝas jene:
+        Peto(PetajSpecoj.GET, 'serĉiVorton', "/", time.time(), {"vortoj", "s"}, "", "") fariĝas jene:
             GET /?vortoj=s HTTP/1.1
 
     speco: La speco de la peto estas uzata por krei la ĝustan mesaĝon per requests.py
@@ -32,6 +32,7 @@ class Peto:
     vojo: La vojo laŭ la servilo, al kiu la peto estas sendata (/, /ensaluti, /registri, ktp)
     tempo: Tiam, kiam la peto estas kreata (ne uzata nune sed estontece la libraro ja uzos ĝin pli ofte)
     parametroj: La parametroj kiujn enhavas la peto kiam ĝi estas sendita al la servilo, ekzemple, "/?listo=10"
+    rajtigo: La ĵetono uzata por rajtigi la uzanton
     korpo: La korpo aŭ la tutaĵo de la peto, per kiu la servilo faras aferojn laŭ la peto, ekzemple, ŝanĝi vortojn, ensaluti per konto-detaloj, ktp
     """
     speco       : int
@@ -39,6 +40,7 @@ class Peto:
     vojo        : str
     tempo       : int
     parametroj  : dict[str, str]
+    rajtigo     : str
     korpo       : str
 
 @dataclass
@@ -143,16 +145,140 @@ class EraroPrizorganto:
 
         self.__notilo.error(eraro_ŝnuro)
 
+class PetoSendanto:
+    def __init__(self, retregno, notilo, eraro_prizorganto):
+        self.__retregno = retregno
+        self.__notilo = notilo
+        self.__eraro_prizorganto = eraro_prizorganto
+        
+    def kreiEraron(self, peto, ekcepto):
+        self.__notilo.exception(f"Malsukcesis sendi {PetajSpecoj(peto.speco).name} peton:")
+        self.__notilo.exception(f"    - Kiam la peton sendas: {e.request.method} {e.request.url}?{e.params}")
+        self.__notilo.exception(f"    - Auth: {e.auth}")
+        self.__notilo.exception(f"    - Peto-korpo: {e.data}")
+        self.__notilo.exception(f"Kaj la respondon havigis:")
+        self.__notilo.exception(f"    - Status Code: {e.response.status_code}")
+        self.__notilo.exception(f"    - Vojo: {e.response.url}")
+        self.__notilo.exception(f"    - Kialo: {e.response.reason}")
+        self.__notilo.exception(f"    - Korpo: {e.response.json()}")
 
+    def __sendiGET(self, peto):
+        try:
+            respondo = requests.get(self.__retregno + peto.vojo, params=peto.parametroj, headers={'Content-Type': 'application/json'})
+            now = time.time()
+            return self.__havigiRespondon(peto, respondo)
+        except requests.exceptions.RequestException as e:
+            self.kreiEraron(peto, e)
+            return None
+        except Exception as e:
+            self.__notilo.exception(f"Ekcepto okazis: {e}")
+            return None
+
+    def __sendiPOST(self, peto):
+        try:
+            respondo = requests.post(self.__retregno + peto.vojo, params=peto.parametroj, headers={
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {peto.rajtigo}'
+            }, data=peto.korpo, verify="keystore.pem")
+            now = time.time()
+            return self.__havigiRespondon(peto, respondo)
+        except requests.exceptions.RequestException as e:
+            self.kreiEraron(peto, e)
+            return None
+        except Exception as e:
+            self.__notilo.exception(f"Ekcepto okazis: {e}")
+            return None
+
+    def __havigiRespondon(self, peto, respondo):
+        return Respondo(peto.speco, respondo.status_code, peto.nomo, peto.vojo, time.time(), respondo.text)
+
+    def sendiPeton(self, peto):
+        respondo = None
+        try:
+            if peto.speco is PetajSpecoj.GET:
+                respondo = self.__sendiGET(peto)
+            elif peto.speco is PetajSpecoj.POST:
+                respondo = self.__sendiPOST(peto)
+        except Exception as e:
+            self.__notilo.exception("Ne povis sendi la peton", exc_info=e)
+        
+        return respondo
+
+
+class Rajtiganto:
+    def __init__(self, uzantnomo, pasvorto, peto_sendanto, notilo):
+        self.__uzantnomo = uzantnomo
+        self.__pasvorto = pasvorto
+
+        self.__peto_sendanto = peto_sendanto
+        self.__notilo = notilo
+        self.__rajtigita = False
+        self.__ĵetono = ""
+
+    def rajtigo(self):
+        self.__rajtigita = False
+        respondo = self.__peto_sendanto.sendiPeton(
+            Peto(PetajSpecoj.POST, "ensaluti", "/ensaluti", time.time(), {}, "", json.dumps({
+                "username": self.__uzantnomo,
+                "password": self.__pasvorto
+            })
+        ))
+        if not respondo:
+            self.__notilo.critical("Io okazis, legu la antaŭajn konsilajn notojn")
+            return None
+        if respondo.kodo != 200:
+            return respondo
+        korpo = respondo.korpo
+        korpo_json = json.loads(korpo)
+        self.__ĵetono = korpo_json["token"]
+        return respondo
+
+    def sendiPOST(self, peto):
+        # Paŝo 1. Kontroli ĉu estas ĵetono metita
+        # Paŝo 1.1. Se ne estas ĵetono metita, fari paŝon 2, alie, fari paŝon 3
+        if self.__ĵetono == "":
+            # Paŝo 2. Provi rajtigi la uzanton per la uzantnomo kaj pasvorto            
+            # Paŝo 2.2. Se la respondo sukcesis, fari paŝon 3, alie, reveni kun la rezulto
+            rajtiga_rezulto = self.rajtigo()
+            if not rajtiga_rezulto:
+                return None
+            if rajtiga_rezulto.kodo != 200:
+                self.__notilo.error(f"Ne povis rajtigi: {rajtiga_rezulto.korpo}")
+                return rajtiga_rezulto
+        # Paŝo 3. Provi sendi la peton kaj kontroli la rezulton
+        # Paŝo 3.1. Se la rezulto malsukcesas, refari paŝon 2
+        peto.rajtigo = self.__ĵetono
+        respondo = self.__peto_sendanto.sendiPeton(peto)
+        if respondo.kodo != 200:
+            if respondo.kodo == 401:
+                # Paŝo 3.2 Se ni provas 5-foje, reveni kun la respondo, alie, fari paŝon 4
+                sukcesa_flago = False
+                for i in range(5):
+                    rajtiga_rezulto = self.rajtigo()
+                    if not rajtiga_rezulto:
+                        return None
+                    if rajtiga_rezulto.kodo != 200:
+                        continue
+                    sukcesa_flago = True
+                    break
+                if not sukcesa_flago:
+                    self.__notilo.error(f"Ne povis rajtigi por sendi peton post 5-foje: {rajtiga_rezulto.korpo}")
+                    return rajtiga_rezulto
+                # Paŝo 4. Sendi la peton kaj reveni kun la respondo
+                malnova_rajtigo = peto.rajtigo
+                peto.rajtigo = self.__ĵetono
+                return self.__peto_sendanto.sendiPeton(peto)
+        return respondo
+        
 import requests
 
 class MiaVortaro:
-    def __init__(self):
+    def __init__(self, uzantnomo, pasvorto):
         self.__lasta_respondo = None
         self.__lasta_peto = None
         self.__lasta_stato = None
 
-        self.__miavortaro_retregno = "http://localhost:5000"
+        self.__miavortaro_retregno = "https://localhost:8443"
         
         #Listo da Petoj
         self.__jenaj_petoj = PetaroŜloso()
@@ -162,6 +288,12 @@ class MiaVortaro:
 
         self.__notilo = None
         self.__tempolimo = 5 #sekundoj
+        
+        self.__peto_sendanto = None
+        self.__rajtiganto = None
+
+        self.__uzantnomo = uzantnomo
+        self.__pasvorto = pasvorto
 
         self.__eraro_prizorganto = None
 
@@ -179,30 +311,13 @@ class MiaVortaro:
         tempo = None
         ##NOTE: Eble ni ŝanĝu `requests.get` al `requess.async.get` por ke ni povus utiligi async-funkciecon
         self.__notilo.debug(f"Sendanta peton al {self.__miavortaro_retregno + peto.vojo}?{peto.parametroj}")
-        if peto.speco is PetajSpecoj.GET:
-            try:
-                respondo = requests.get(self.__miavortaro_retregno + peto.vojo, params=peto.parametroj, headers={'Content-Type': 'application/json'})
-                now = time.time()
-            except ConnectionError as e:
-                self.__notilo.exception(f"Malsukcesis konekti", exec_info=e)
-                return False
-            except requests.exceptions.ConnectionError as e:
-                self.__notilo.exception(f"Malsukcesis konekti: {e}")
-                return False
-            except requests.exceptions.RequestException as e:
-                ##TODO: Ni devas movi tion ĉi en novan funkcion en alia klazo
-                ##TODO: Kaj ankaŭ ni devas aldoni erarojn al eraro-listo iam
-                self.__eraro_prizorganto.peto_eraro(e.peto, e.respondo, e)
-                return False
-            except Exception as e:
-                self.__notilo.exception(f"Ekcepto okazis: {e}")
-                return False
+        if peto.speco is PetajSpecoj.POST:
+            respondo = self.__rajtiganto.sendiPOST(peto)
         else:
-            self.__notilo.critical("Aliaj petaj specoj ne ankoraŭ pretas")
-            return False
-        korpo = respondo.text
-        self.__nunaj_respondoj[peto.nomo] = Respondo(peto.speco, respondo.status_code, peto.nomo, respondo.url, tempo, respondo.text)
-        self.__notilo.debug(korpo)
+            respondo = self.__peto_sendanto.sendiPeton(peto)
+        korpo = respondo.korpo
+        self.__nunaj_respondoj[peto.nomo] = respondo
+        # self.__notilo.debug(korpo)
         return True
         
 
@@ -220,6 +335,12 @@ class MiaVortaro:
 
         self.__peta_prilaboranto = Fadeno(self.__notilo, "peta_prilaboranto", self.prilaboriPetojn)
         self.__peta_prilaboranto.ŝalti()
+
+        self.__peto_sendanto = PetoSendanto(self.__miavortaro_retregno, self.__notilo, None)
+        self.__rajtiganto = Rajtiganto(self.__uzantnomo, self.__pasvorto, self.__peto_sendanto, self.__notilo)
+
+        if self.__uzantnomo and self.__pasvorto:
+            self.__rajtiganto.rajtigo()
 
     def ĉesu(self):
         self.__peta_prilaboranto.elŝalti()
@@ -247,7 +368,7 @@ class MiaVortaro:
         return respondo
 
     def __senduPeton(self, speco, nomo, vojo, parametroj, korpo):
-        self.__jenaj_petoj.enmetiPeton(Peto(speco, nomo, vojo, time.time(), parametroj, korpo))
+        self.__jenaj_petoj.enmetiPeton(Peto(speco, nomo, vojo, time.time(), parametroj, "", korpo))
         respondo = self.__atendiRespondon(nomo)
         if respondo is None:
             self.__notilo.error("Ne povis havigi respondon de la servilo. Aŭ reprovu poste aŭ kontaktu la adminon de la servilo por helpo.")
@@ -256,6 +377,11 @@ class MiaVortaro:
 
     def __senduGET(self, nomo, vojo, parametroj, korpo):
         return self.__senduPeton(PetajSpecoj.GET, nomo, vojo, parametroj, korpo)
+
+    def __senduPOST(self, nomo, vojo, parametroj, korpo):
+        return self.__senduPeton(
+            PetajSpecoj.POST, nomo, vojo, parametroj, korpo
+        )
 
     def serĉiVorton(self, vorto):
         ## Paŝo 1: Sendu la serĉiVorton peton al la servilo kaj atendu la respondon per self.__senduPeton
@@ -270,5 +396,14 @@ class MiaVortaro:
         if respondo is None:
             return None
         return json.loads(respondo.korpo)
+
+    def aldoniVorton(self, vorto, priskribo):
+        respondo = self.__senduPOST(
+            "aldoniVorton", "/", {}, json.dumps({"word": vorto, "definition": priskribo})
+        )
+        if respondo is None:
+            return None
+        return respondo
+
 
         

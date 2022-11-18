@@ -192,6 +192,21 @@ class PetoSendanto:
             self.__notilo.exception(f"Ekcepto okazis: {e}")
             return None
 
+    def __sendiDELETE(self, peto):
+        try:
+            respondo = requests.delete(self.__retregno + peto.vojo, params=peto.parametroj, headers={
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {peto.rajtigo}'
+            }, data=peto.korpo, verify="keystore.pem")
+            now = time.time()
+            return self.__havigiRespondon(peto, respondo)
+        except requests.exceptions.RequestException as e:
+            self.kreiEraron(peto, e)
+            return None
+        except Exception as e:
+            self.__notilo.exception(f"Ekcepto okazis: {e}")
+            return None
+
     def __havigiRespondon(self, peto, respondo):
         return Respondo(peto.speco, respondo.status_code, peto.nomo, peto.vojo, time.time(), respondo.text)
 
@@ -202,6 +217,8 @@ class PetoSendanto:
                 respondo = self.__sendiGET(peto)
             elif peto.speco is PetajSpecoj.POST:
                 respondo = self.__sendiPOST(peto)
+            elif peto.speco is PetajSpecoj.DELETE:
+                respondo = self.__sendiDELETE(peto)
         except Exception as e:
             self.__notilo.exception("Ne povis sendi la peton", exc_info=e)
         
@@ -236,7 +253,7 @@ class Rajtiganto:
         self.__ĵetono = korpo_json["token"]
         return respondo
 
-    def sendiPOST(self, peto):
+    def sendiPeton(self, peto):
         # Paŝo 1. Kontroli ĉu estas ĵetono metita
         # Paŝo 1.1. Se ne estas ĵetono metita, fari paŝon 2, alie, fari paŝon 3
         if self.__ĵetono == "":
@@ -301,10 +318,11 @@ class MiaVortaro:
         self.__eraro_prizorganto = None
 
     def __enter__(self):
-        return MiaVortaro()
+        self.komencu()
+        return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        return
+        self.ĉesu()
 
     def prilaboriPetojn(self):
         peto = self.__jenaj_petoj.preniPeton()
@@ -312,10 +330,9 @@ class MiaVortaro:
             return True
         respondo = None
         tempo = None
-        ##NOTE: Eble ni ŝanĝu `requests.get` al `requess.async.get` por ke ni povus utiligi async-funkciecon
-        self.__notilo.debug(f"Sendanta peton al {self.__miavortaro_retregno + peto.vojo}?{peto.parametroj}")
-        if peto.speco is PetajSpecoj.POST:
-            respondo = self.__rajtiganto.sendiPOST(peto)
+        ##NOTE: Eble ni ŝanĝu `requests.get` al `requests.async.get` por ke ni povus utiligi async-funkciecon
+        if peto.speco is PetajSpecoj.POST or peto.speco is PetajSpecoj.DELETE:
+            respondo = self.__rajtiganto.sendiPeton(peto)
         else:
             respondo = self.__peto_sendanto.sendiPeton(peto)
         korpo = respondo.korpo
@@ -386,6 +403,12 @@ class MiaVortaro:
             PetajSpecoj.POST, nomo, vojo, parametroj, korpo
         )
 
+    def __senduDELETE(self, nomo, vojo, parametroj, korpo):
+        return self.__senduPeton(
+            PetajSpecoj.DELETE, nomo, vojo, parametroj, korpo
+        )
+
+
     def serĉiVorton(self, vorto):
         ## Paŝo 1: Sendu la serĉiVorton peton al la servilo kaj atendu la respondon per self.__senduPeton
         respondo = self.__senduGET(nomo = "serĉiVorton", vojo = "/", parametroj = {"vortoj": vorto}, korpo = None)
@@ -408,5 +431,9 @@ class MiaVortaro:
             return None
         return respondo
 
-
+    def forigiVorton(self, vorto):
+        respondo = self.__senduDELETE("forigiVorton", "/", {}, vorto)
+        if respondo is None:
+            return None
+        return respondo
         

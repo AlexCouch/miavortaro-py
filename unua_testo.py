@@ -1,9 +1,9 @@
 from miavortaro import MiaVortaro
 
+from pprint import pprint
+
 with MiaVortaro() as miavortaro:
-    miavortaro.komencu()
     vortoj = miavortaro.listigiVortojn()
-    print(vortoj)
+    pprint(vortoj)
     rezulto = miavortaro.serĉiVorton("en")
-    print(rezulto)
-    miavortaro.ĉesu()
+    pprint(rezulto)

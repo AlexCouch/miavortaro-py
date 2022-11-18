@@ -11,21 +11,17 @@ Jen kiel uzi ĝin sen la rajtigo
 from miavortaro import MiaVortaro
 
 ## Due: Krei novan MiaVortaro-objekton, tiu ĉi estas la motoro
-miavortaro = MiaVortaro()
-## Trie: Envoki la "komencu" agon de la motoro
-miavortaro.komencu()
-## Opcio: Voki "listigiVortojn" por listigi vortojn pere de iom sametempe
-##  Rimarku, ke la defaŭlta valoro de la funkcio estas 10, kaj oni povas enmeti
-##     iun alian valoron volante
-vortoj = miavortaro.listigiVortojn()
-print(vortoj)
-## Opcio: Voki "serĉiVorton" por serĉi tra la tuta servilo vortojn 
-#   kiuj kongruas kun la enigaĵo 
-#   (ekzemple, ĉi tie "en" donu al vi ĉiujn vortojn kiuj enhavas "en")
-rezulto = miavortaro.serĉiVorton("en")
-print(rezulto)
-## Haltu/Ĉesu la motoron
-miavortaro.ĉesu()
+with MiaVortaro() as miavortaro:
+    ## Opcio: Voki "listigiVortojn" por listigi vortojn pere de iom sametempe
+    ##  Rimarku, ke la defaŭlta valoro de la funkcio estas 10, kaj oni povas enmeti
+    ##     iun alian valoron volante
+    vortoj = miavortaro.listigiVortojn()
+    print(vortoj)
+    ## Opcio: Voki "serĉiVorton" por serĉi tra la tuta servilo vortojn 
+    #   kiuj kongruas kun la enigaĵo 
+    #   (ekzemple, ĉi tie "en" donu al vi ĉiujn vortojn kiuj enhavas "en")
+    rezulto = miavortaro.serĉiVorton("en")
+    print(rezulto)
 ```
 
 Jen kiel uzi ĝin kun la rajtigo (rimarku: nuntempe, nur mi povas uzi ĝin ĝis mi integras manieron por havi adminajn kontojn estontece)
@@ -33,15 +29,29 @@ Jen kiel uzi ĝin kun la rajtigo (rimarku: nuntempe, nur mi povas uzi ĝin ĝis 
 ```python
 from miavortaro import MiaVortaro
 
-miavortaro = MiaVortaro("uzantnomo", "pasvorto")
-miavortaro.komencu()
-respondo = miavortaro.aldoniVorton("enmeti", "meti en")
-if respondo is None:
-    print("Ne povis aldoni aŭ ŝanĝi vorton")
-    exit(1)
-if respondo.kodo != 200:
-    print(f"Malsukcesis aldoni/ŝanĝi vorton: {respondo.kodo}")
-miavortaro.ĉesu()
+from pprint import pprint
+
+with MiaVortaro("Admin", "zamenhof7881") as miavortaro:
+    respondo = miavortaro.aldoniVorton("enmeti", "meti en")
+    if respondo is None:
+        print("Ne povis aldoni aŭ ŝanĝi vorton")
+        exit(1)
+    elif respondo.kodo != 200:
+        print(f"Malsukcesis aldoni/ŝanĝi vorton: {respondo.kodo}")
+        exit(1)
+    else:
+        print("Sukcesas!")
+    respondo = miavortaro.forigiVorton("enmeti")
+    if respondo is None:
+        print("Ne povis forigi vorton")
+        exit(1)
+    elif respondo.kodo != 200:
+        print(f"Malsukcesis forigi vorton: {respondo.kodo}")
+        exit(1)
+    else:
+        print("Sukcesas!")
+    rezulto = miavortaro.serĉiVorton("en")
+    pprint(rezulto) #[]
 ```
 
 Baldaŭ mi aldonos adminajn kontojn

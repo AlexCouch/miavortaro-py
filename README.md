@@ -1,8 +1,5 @@
-# miavortaro.py 0.1-alpha
+# miavortaro.py 0.2-alpha
 Tiu ĉi libraro Python-a estas oficiala libraro por integri komunikadon inter aliaj apoj kaj MiaVortaro per Python
-
-## Gravaj Rimarkoj
-
 
 ## Kiel Uzi
 Jen kiel uzi ĝin sen la rajtigo

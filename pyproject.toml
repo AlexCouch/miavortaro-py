@@ -1,0 +1,37 @@
+[project]
+name = "miavortaro-py"
+version="0.1-alpha"
+description="Python-a libraro por interagi kun la servilo de MiaVortaro"
+authors = [
+    {name="Alex Couch", email="alcouch65@gmail.com"}
+]
+license = {file="LICENSE"}
+readme = "README.md"
+requires-python = ">=3.6"
+
+keywords = ["miavortaro", "vortaro", "esperanto"]
+
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Other Audience",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: Esperanto",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux"
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Testing",
+]
+dependencies = [
+    "requests>=2.28.1"
+]
+
+[project.urls]
+problemoj = "https://github.com/AlexCouch/miavortaro-py/issues",
+dokumentaĵoj = "https://alexcouch.github.io/miavortaro-py/build/"
+repository = "https://github.com/AlexCouch/miavortaro-py"
+
+[build-system]
+requires = ["setuptools>=40.8.0"]
+build-backend = "setuptools.build_meta"

@@ -2,6 +2,9 @@
 Tiu ĉi libraro Python-a estas oficiala libraro por integri komunikadon inter aliaj apoj kaj MiaVortaro per Python
 
 ## Kiel Uzi
+Por uzi la libraron, oni devas elŝulti la libraron per pipo.
+`pip install git+https://github.com/AlexCouch/miavortaro-py.git`
+
 Jen kiel uzi ĝin sen la rajtigo
 ```python
 ## Unue: Importi miavortaro.MiaVortaro

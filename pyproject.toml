@@ -28,7 +28,7 @@ dependencies = [
 ]
 
 [project.urls]
-problemoj = "https://github.com/AlexCouch/miavortaro-py/issues",
+problemoj = "https://github.com/AlexCouch/miavortaro-py/issues"
 dokumentaĵoj = "https://alexcouch.github.io/miavortaro-py/build/"
 repository = "https://github.com/AlexCouch/miavortaro-py"
 

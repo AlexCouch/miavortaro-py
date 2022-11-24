@@ -11,10 +11,10 @@ setuptools.setup(
     description="Python-a libraro por interagi kun la servilo de MiaVortaro",
     long_description=longa_priskribo,
     url="https://github.com/alexcouch/miavortaro-py",
-    project_urls=[
-        "https://github.com/AlexCouch/miavortaro-py/issues",
-        "https://alexcouch.github.io/miavortaro-py/build/"
-    ],
+    project_urls={
+        "Problemoj": "https://github.com/AlexCouch/miavortaro-py/issues",
+        "Dokumentaĵoj": "https://alexcouch.github.io/miavortaro-py/build/"
+    },
     license="Apache 2.0",
     packages=["miavortaro"],
     install_requires=["requests"]

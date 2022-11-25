@@ -1,0 +1,1 @@
+from .miavortaro import MiaVortaro

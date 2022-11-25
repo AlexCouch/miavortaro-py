@@ -1,6 +1,6 @@
 [project]
 name = "miavortaro-py"
-version="0.1-alpha"
+version="0.2.1-alpha"
 description="Python-a libraro por interagi kun la servilo de MiaVortaro"
 authors = [
     {name="Alex Couch", email="alcouch65@gmail.com"}
